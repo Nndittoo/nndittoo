@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id" class="lenis">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portofolio Profesional Modern</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="images/logo.png">
+    <!-- Libraries -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Konfigurasi Tailwind Kustom: Tema Navy & Emerald -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f8fafc',  // Slate muda (Background cerah)
+                            100: '#e2e8f0', // Slate untuk border
+                            500: '#10b981', // Emerald Cerah (Aksen, Indikator)
+                            600: '#059669', // Emerald Gelap (Hover)
+                            800: '#1e293b', // Lighter Navy
+                            900: '#0f172a', // Navy Super Gelap (Teks Utama, Background Footer)
+                        }
+                    },
+                    animation: {
+                        'marquee': 'marquee 40s linear infinite',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-50%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS -->
+    <style>
+        /* Custom Kursor (Mix-Blend Mode agar terlihat di background putih & gelap) */
+        @media (hover: hover) and (pointer: fine) {
+            body, a, button, .magnetic-btn { cursor: none !important; }
+        }
+        #cursor-dot { 
+            transition: width 0.2s, height 0.2s, background-color 0.2s; 
+            background-color: white !important;
+            mix-blend-mode: difference; /* Fitur Kursor Invert/Bunglon */
+            z-index: 9999;
+        }
+        #cursor-outline { 
+            transition: width 0.2s, height 0.2s, border-color 0.2s; 
+            will-change: transform; 
+            border-color: white !important;
+            mix-blend-mode: difference; /* Fitur Kursor Invert/Bunglon */
+            z-index: 9999;
+        }
+
+        /* Custom Scrollbar */
+        html.lenis { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0f172a; }
+
+        /* Marquee Seamless Tanpa Putus */
+        .marquee-wrapper {
+            display: flex;
+            width: max-content;
+            will-change: transform;
+        }
+
+        /* Animasi Modal Modern */
+        #modal-overlay.hidden { display: none; }
+        .modal-enter-active { animation: modalFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-content-enter { animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes modalFadeIn {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(8px); }
+        }
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: scale(0.95) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-exit-active { opacity: 0; transform: scale(0.95); transition: all 300ms ease-in; }
+
+        ::selection { background: #10b981; color: #ffffff; }
+    </style>
+</head>
+<body class="font-sans text-brand-900 bg-white antialiased overflow-x-hidden">
+
+    <!-- Custom Cursor -->
+    <div id="cursor-dot" class="fixed top-0 left-0 w-2 h-2 rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 hidden md:block"></div>
+    <div id="cursor-outline" class="fixed top-0 left-0 w-10 h-10 border rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 hidden md:block transition-all duration-75"></div>
+
+    <!-- Canvas 3D Background -->
+    <canvas id="bg-3d-canvas" class="fixed inset-0 z-0 w-full h-full pointer-events-none opacity-40"></canvas>
+
+    <!-- Navbar -->
+    <nav id="navbar" class="fixed w-full z-40 transition-all duration-500 bg-transparent border-b border-transparent">
+        <div class="max-w-7xl mx-auto px-6 py-4 grid grid-cols-3 items-center relative">
+            <!-- Desktop Menu (Kiri) -->
+            <div class="hidden md:flex space-x-10 text-sm justify-start">
+                <a href="#home" class="nav-link font-semibold text-brand-900 hover-target relative overflow-hidden group">
+                    Beranda
+                    <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand-500 transform scale-x-100 transition-transform origin-left rounded-full"></span>
+                </a>
+                <a href="#about" class="nav-link font-medium text-gray-500 hover:text-brand-900 hover-target relative overflow-hidden group transition-colors">
+                    Tentang
+                    <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full"></span>
+                </a>
+                <a href="#projects" class="nav-link font-medium text-gray-500 hover:text-brand-900 hover-target relative overflow-hidden group transition-colors">
+                    Projek
+                    <span class="absolute bottom-0 left-0 w-full h-[2px] bg-brand-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full"></span>
+                </a>
+            </div>
+            
+            <div class="md:hidden"></div>
+
+            <!-- Logo Berputar di Tengah -->
+            <div class="flex justify-center z-50">
+                <a href="#home" class="magnetic-btn hover-target relative flex items-center justify-center">
+                    <!-- Menghapus transition agar putaran script GSAP/Lenis lebih realtime -->
+                    <img id="center-logo" src="images/logo.png" alt="Logo Lingkaran" class="w-12 h-12 rounded-full object-cover border-2 border-brand-900/10 shadow-sm will-change-transform">
+                </a>
+            </div>
+
+            <!-- Bagian Kanan (Tombol & Menu Mobile) -->
+            <div class="flex justify-end items-center gap-4 z-50">
+                <div class="hidden md:block">
+                    <a href="#contact" class="magnetic-btn hover-target px-6 py-2.5 bg-brand-900 text-white text-sm font-semibold rounded-full hover:bg-brand-800 transition-colors shadow-lg shadow-brand-900/20">
+                        Sapa Saya
+                    </a>
+                </div>
+                <!-- Mobile Menu Toggle -->
+                <button id="mobile-menu-btn" class="md:hidden z-50 p-2 text-brand-900 hover-target focus:outline-none">
+                    <svg id="menu-icon" class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    <svg id="close-icon" class="w-6 h-6 hidden transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Drawer Sidebar -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-brand-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 md:hidden"></div>
+    <div id="mobile-menu" class="fixed top-0 right-0 h-[100svh] w-[80%] max-w-sm bg-white z-50 transform translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden flex flex-col shadow-2xl">
+        <div class="flex flex-col px-8 py-32 space-y-6 flex-grow border-l border-gray-100">
+            <span class="text-xs font-bold text-brand-500 uppercase tracking-widest mb-4">Navigasi</span>
+            <a href="#home" class="mobile-nav-link text-3xl font-display font-bold text-brand-900 flex items-center gap-4 group">
+                <span class="w-2 h-2 rounded-full bg-brand-500 group-hover:scale-150 transition-transform"></span> Beranda
+            </a>
+            <a href="#about" class="mobile-nav-link text-3xl font-display font-medium text-gray-400 hover:text-brand-900 flex items-center gap-4 group transition-colors">
+                <span class="w-2 h-2 rounded-full bg-transparent border border-gray-300 group-hover:bg-brand-500 group-hover:border-transparent transition-all"></span> Tentang
+            </a>
+            <a href="#projects" class="mobile-nav-link text-3xl font-display font-medium text-gray-400 hover:text-brand-900 flex items-center gap-4 group transition-colors">
+                <span class="w-2 h-2 rounded-full bg-transparent border border-gray-300 group-hover:bg-brand-500 group-hover:border-transparent transition-all"></span> Projek
+            </a>
+            <a href="#contact" class="mobile-nav-link text-3xl font-display font-medium text-gray-400 hover:text-brand-900 flex items-center gap-4 group transition-colors">
+                <span class="w-2 h-2 rounded-full bg-transparent border border-gray-300 group-hover:bg-brand-500 group-hover:border-transparent transition-all"></span> Kontak
+            </a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative min-h-[100svh] flex items-center z-10 pt-20">
+        <div class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="flex flex-col justify-center text-center md:text-left z-10 order-2 md:order-1 mt-10 md:mt-0">
+                <div class="hero-anim inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full w-max mx-auto md:mx-0 mb-6 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                    <span class="text-xs font-bold tracking-wide uppercase text-brand-900">Tersedia Untuk Bekerja</span>
+                </div>
+                
+                <h1 class="font-display text-5xl md:text-7xl font-extrabold tracking-tighter leading-[1.1] mb-6 text-brand-900">
+                    <div class="hero-title overflow-hidden"><span class="block translate-y-full">Menciptakan</span></div>
+                    <div class="hero-title overflow-hidden"><span class="block translate-y-full text-transparent bg-clip-text bg-gradient-to-r from-brand-900 to-brand-500 pb-2">Karya Digital</span></div>
+                    <div class="hero-title overflow-hidden"><span class="block translate-y-full">Bermakna.</span></div>
+                </h1>
+                
+                <p class="hero-anim text-lg text-gray-600 max-w-lg mx-auto md:mx-0 mb-10 leading-relaxed font-medium">
+                    Saya memadukan logika teknis dan estetika visual untuk merancang aplikasi web modern yang cepat, indah, dan intuitif.
+                </p>
+                
+                <div class="hero-anim flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
+                    <a href="#projects" class="magnetic-btn hover-target w-full sm:w-auto px-8 py-4 bg-brand-900 text-white rounded-full hover:bg-brand-800 transition-colors shadow-xl shadow-brand-900/20 text-sm font-bold tracking-wide text-center">
+                        Eksplorasi Karya
+                    </a>
+                    <a href="#contact" class="magnetic-btn hover-target w-full sm:w-auto px-8 py-4 bg-white text-brand-900 border border-gray-200 rounded-full hover:border-brand-500 transition-colors text-sm font-bold tracking-wide text-center">
+                        Hubungi Saya
+                    </a>
+                </div>
+            </div>
+
+            <!-- Visual Foto Profil Hero dengan 3D Tilt Effect -->
+            <div class="order-1 md:order-2 flex justify-center items-center z-10 hero-anim">
+                <div class="tilt-element relative w-full max-w-[280px] sm:max-w-sm mx-auto group perspective-[1000px]">
+                    <div class="absolute inset-0 bg-brand-500 rounded-[2rem] translate-x-4 translate-y-4 opacity-20 blur-lg group-hover:opacity-40 transition-all duration-500 transform-style-preserve-3d translate-z-[-20px]"></div>
+                    <div class="relative rounded-[2rem] overflow-hidden shadow-2xl bg-brand-50 aspect-[4/5] border border-white transform-style-preserve-3d">
+                        <img src="images/nndito.jpeg" alt="Foto Profil" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 bg-brand-50 px-6 overflow-hidden relative z-10">
+        <div class="max-w-6xl mx-auto gsap-about">
+            <div class="flex flex-col md:flex-row gap-16 items-center">
+                <!-- Foto About dengan Efek Pop-Out 3D yang sangat kuat -->
+                <div class="w-full max-w-sm md:max-w-full md:w-5/12 tilt-element group perspective-[1200px]">
+                    <div class="relative transform-style-preserve-3d tilt-content">
+                        <!-- Cahaya belakang (Mundur) -->
+                        <div class="absolute -inset-4 bg-gradient-to-br from-brand-500 to-brand-900 opacity-20 rounded-3xl blur-2xl transition-all duration-500 translate-z-[-30px]"></div>
+                        
+                        <!-- Gambar Utama -->
+                        <div class="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
+                            <img src="images/4x6.jpg" alt="Tentang Saya" class="w-full object-cover aspect-[4/5] group-hover:scale-[1.02] transition-transform duration-700">
+                        </div>
+
+                        <!-- Badge Mengambang (Maju ke depan) -->
+                        <div class="absolute -bottom-6 -right-6 bg-white p-5 rounded-2xl shadow-2xl border border-gray-100 flex items-center gap-4 translate-z-[60px]">
+                            <div class="p-3 bg-brand-50 text-brand-500 rounded-full">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mengerjakan</p>
+                                <p class="text-xl font-display font-extrabold text-brand-900">10+ Projek</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teks About -->
+                <div class="w-full md:w-7/12 text-center md:text-left">
+                    <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight mb-6 text-brand-900">Mengenal Lebih Dekat</h2>
+                    <p class="text-gray-600 mb-6 leading-relaxed text-lg font-medium">
+                        Halo! Saya seorang UI/UX Designer dan Web Developer. Saya senang mengubah masalah yang rumit menjadi tampilan website yang simpel, rapi, dan mudah digunakan.
+                    </p>
+                    <p class="text-gray-600 mb-10 leading-relaxed text-lg font-medium">
+                        Selain fokus membuat desain yang minimalis dan kode yang efisien, saya juga selalu antusias untuk mempelajari teknologi IT terbaru, termasuk Kecerdasan Buatan (AI).
+                    </p>
+                    
+                    <div class="mb-10">
+                        <div class="flex flex-wrap justify-center md:justify-start gap-3">
+                            <span class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-brand-900 shadow-sm hover:border-brand-500 transition-colors">Web Development</span>
+                            <span class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-brand-900 shadow-sm hover:border-brand-500 transition-colors">UI/UX Design</span>
+                            <span class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-brand-900 shadow-sm hover:border-brand-500 transition-colors">Deep Learning</span>
+                            <span class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-brand-900 shadow-sm hover:border-brand-500 transition-colors">Computer Vision</span>
+                            <span class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-brand-900 shadow-sm hover:border-brand-500 transition-colors">Langflow</span>
+                            <span class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-brand-900 shadow-sm hover:border-brand-500 transition-colors">AI Agent</span>
+                            <span class="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-bold text-brand-900 shadow-sm hover:border-brand-500 transition-colors">Graphic Designer</span>
+                        </div>
+                    </div>
+
+                    <a href="CV Nandito.pdf" class="magnetic-btn hover-target inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-900 text-white rounded-full hover:bg-brand-800 transition-colors font-bold text-sm">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download Curriculum Vitae
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projek Section -->
+    <section id="projects" class="py-24 px-6 bg-white overflow-hidden relative z-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 gsap-project-header">
+                <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight mb-4 text-brand-900">Karya Pilihan</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto text-lg font-medium">Koleksi proyek terbaik yang telah saya kerjakan. Menampilkan dedikasi pada detail desain dan kualitas kode.</p>
+            </div>
+
+            <!-- Kontainer Kartu Projek (Akan diisi via JavaScript) -->
+            <div id="projects-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+
+            <!-- Pagination Controls -->
+            <div id="pagination-controls" class="flex justify-center items-center gap-3 mt-12">
+            </div>
+        </div>
+    </section>
+
+    <!-- Kontak Section (Berubah jadi 1 Layar Penuh) -->
+    <section id="contact" class="min-h-[100svh] flex flex-col items-center justify-center py-24 px-6 bg-brand-900 overflow-hidden relative z-10 rounded-t-[3rem] -mt-10">
+        <div class="max-w-4xl mx-auto w-full text-center gsap-contact">
+            <h2 class="font-display text-4xl md:text-5xl font-bold trackingproject-tight mb-6 text-white">Mari Bekerja Sama</h2>
+            <p class="text-brand-50/70 mb-12 text-lg max-w-2xl mx-auto font-medium">Apakah Anda memiliki ide proyek besar, atau sekadar ingin menyapa? Saya selalu terbuka untuk mendiskusikan peluang baru.</p>
+            
+            <div class="flex flex-col sm:flex-row flex-wrap justify-center gap-4">
+                <a href="https://www.linkedin.com/in/nndittoo" target="_blank" class="magnetic-btn hover-target flex items-center justify-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full hover:bg-white hover:text-brand-900 text-white transition-all group font-bold">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    LinkedIn
+                </a>
+                <a href="mailto:nanditoanandaginting@anda.com" class="magnetic-btn hover-target flex items-center justify-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full hover:bg-white hover:text-brand-900 text-white transition-all group font-bold">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    nanditoanandaginting@gmail.com
+                </a>
+                <a href="https://wa.me/6282274593774" target="_blank" class="magnetic-btn hover-target flex items-center justify-center gap-3 px-8 py-4 bg-brand-500 text-white border border-brand-500 rounded-full hover:bg-brand-600 transition-all group font-bold shadow-lg shadow-brand-500/30">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.347-.272.297-1.04 1.016-1.04 2.479 0 1.463 1.065 2.876 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                    WhatsApp
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Overlay -->
+    <!-- PERBAIKAN PENTING: data-lenis-prevent mengizinkan scroll mouse di dalam modal -->
+    <div id="modal-overlay" class="fixed inset-0 z-[60] bg-brand-900/80 backdrop-blur-md hidden overflow-y-auto" data-lenis-prevent>
+        <div class="min-h-[100svh] flex items-center justify-center p-4 md:p-8">
+            <div id="modal-content" class="bg-white rounded-[2rem] w-full max-w-4xl shadow-2xl relative flex flex-col scale-95 opacity-0 transform transition-transform duration-300 my-auto border border-gray-100 overflow-hidden">
+                <button onclick="closeModal()" class="hover-target absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-full text-brand-900 hover:bg-brand-500 hover:text-white transition-colors z-10 shadow-lg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <div id="modal-body" class="flex flex-col"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Master -->
+    <script src="app.js">
+    </script>
+</body>
+</html>
